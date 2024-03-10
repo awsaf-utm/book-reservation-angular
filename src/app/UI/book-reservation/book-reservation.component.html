@@ -1,0 +1,290 @@
+<!-- Display UI -->
+@if (!showDataForm && bookReservations) {
+<h2>Book Reservations</h2>
+
+<!-- Search box -->
+<div class="form-group row">
+    <div class="col-12 col-sm-8 mb-0 mb-sm-0 position-relative">
+        <input type="text" class="form-control" placeholder="Search Book Reservations" [(ngModel)]="txtSearch"
+            (keyup.enter)="btnSearch_Click()">
+        <!-- Clear icon -->
+        @if (txtSearch) {
+        <i class="bi bi-x-circle-fill position-absolute top-50 end-0 translate-middle-y margin-right-15"
+            (click)="btnClearSearch_Click()"></i>
+        }
+    </div>
+    <div class="col-6 col-sm-2 mb-0 mb-sm-0">
+        <button class="btn btn-primary w-100 mt-1 mt-xs-1 mt-sm-1 mt-md-0 mt-lg-0 mt-xl-0" (click)="btnSearch_Click()">
+            <i class="bi bi-search"></i>
+            Search
+        </button>
+    </div>
+    <div class="col-6 col-sm-2 mb-0 mb-sm-0">
+        @if(displayDeleteButton())
+        {
+        <button class="btn btn-danger w-100 mt-1 mt-xs-1 mt-sm-1 mt-md-0 mt-lg-0 mt-xl-0"
+            (click)="btnDeleteBulk_Click()">
+            <i class="bi bi-trash"></i>
+            Delete
+        </button>
+        } @else {
+        <button class="btn btn-primary w-100 mt-1 mt-xs-1 mt-sm-1 mt-md-0 mt-lg-0 mt-xl-0" (click)="btnAdd_Click()">
+            <i class="bi bi-plus"></i>
+            Add
+        </button>
+        }
+    </div>
+</div>
+
+<!-- Display data -->
+<div class="overflow-auto">
+    <table class="table table-responsive min-width-book-reservation-table">
+        <thead>
+            <tr>
+                <th>
+                    <input type="checkbox" #chkSelectAll [checked]="isAllSelected()"
+                        (change)="toggleAllSelection(chkSelectAll.checked)" title="Select/Deselect All">
+                </th>
+                <th class="text-center align-middle" (click)="sortTable('reservationRef')">Reservation Ref <i class="bi"
+                        [ngClass]="getSortIcon('reservationRef')"></i></th>
+
+                <th class="text-center align-middle" (click)="sortTable('name')">Name <i class="bi"
+                        [ngClass]="getSortIcon('name')"></i></th>
+                <th class="text-center align-middle" (click)="sortTable('email')">Email <i class="bi"
+                        [ngClass]="getSortIcon('email')"></i></th>
+                <th class="text-center align-middle" (click)="sortTable('mobile')">Mobile <i class="bi"
+                        [ngClass]="getSortIcon('mobile')"></i></th>
+
+                <th class="text-center align-middle" (click)="sortTable('reservationDate')">Reservation Date <i
+                        class="bi" [ngClass]="getSortIcon('reservationDate')"></i></th>
+
+                <th class="text-center align-middle" (click)="sortTable('reservationComment')">Comment <i class="bi"
+                        [ngClass]="getSortIcon('reservationComment')"></i></th>
+                <th class="table-action-button text-center align-middle">Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            @for (bookReservation of getFilteredPagingBookReservations; track bookReservation._id)
+            {
+            <tr>
+                <td>
+                    <input type="checkbox" id="isSelected" name="isSelected" [(ngModel)]="bookReservation.isSelected"
+                        (change)="toggleSelection(bookReservation)" title="Select">
+                </td>
+                <td>{{ bookReservation.reservationRef }}</td>
+                <td>{{ bookReservation.userInfo.name }}</td>
+                <td>{{ bookReservation.userInfo.email }}</td>
+                <td>{{ bookReservation.userInfo.mobile }}</td>
+                <td>{{ bookReservation.reservationDate | date: 'mediumDate' }}</td>
+                <td>{{ bookReservation.reservationComment }}</td>
+                <td>
+                    <button class="btn btn-secondary btn-sm" (click)="toggleDetails(bookReservation)"
+                        title="Toggle Details">
+                        <i
+                            [ngClass]="expandedReservationId === bookReservation._id ? 'bi bi-chevron-up' : 'bi bi-chevron-down'"></i>
+                    </button>
+                    <button class="btn btn-primary ms-1 btn-sm" (click)="btnUpdate_Click(bookReservation)"
+                        title="Edit Book Reservation">
+                        <i class="bi bi-pencil"></i>
+                    </button>
+                    <button class="btn btn-danger ms-1 btn-sm" (click)="btnDelete_Click(bookReservation._id)"
+                        title="Delete Book Reservation">
+                        <i class="bi bi-trash"></i>
+                    </button>
+                </td>
+            </tr>
+
+            <!-- Nested table for master details view -->
+            @if (bookReservation._id === expandedReservationId && bookReservation.reservationDetails.length > 0) {
+            <tr class="nested-table">
+                <td colspan="4">
+                    <table class="table table-responsive">
+                        <thead>
+                            <tr>
+                                <th>Book</th>
+                                <th>Quantity</th>
+                                <!-- Add more headers as needed -->
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr *ngFor="let detail of bookReservation.reservationDetails">
+                                <td>{{ detail.bookTitle }}</td>
+                                <td>{{ detail.quantity }}</td>
+                                <!-- Add more columns as needed -->
+                            </tr>
+                        </tbody>
+                    </table>
+                </td>
+            </tr>
+            }
+
+            }
+        </tbody>
+    </table>
+</div>
+
+
+<!-- Pagination -->
+<nav aria-label="Page navigation">
+    <ul class="pagination justify-content-center">
+        <li class="page-item" [ngClass]="{ 'disabled': currentPage === 1 }">
+            <button class="page-link" (click)="firstPage()" aria-label="First">
+                <span aria-hidden="true">&laquo;&laquo;</span>
+                <span class="visually-hidden">First</span>
+            </button>
+        </li>
+        <li class="page-item" [ngClass]="{ 'disabled': currentPage === 1 }">
+            <button class="page-link" (click)="prevPage()" aria-label="Previous">
+                <span aria-hidden="true">&laquo;</span>
+                <span class="visually-hidden">Previous</span>
+            </button>
+        </li>
+
+        <!-- Display all pages if total pages are less than or equal to maxPagesToShow -->
+        @if(totalPages <= maxPagesNumberToShow) { @for(page of pages; track page){ <li class="page-item"
+            [ngClass]="{ 'active': currentPage === page }">
+            <button class="page-link" (click)="changePage(page)">{{ page }}</button>
+            </li>
+            }
+            }
+
+            <!-- Display a subset of pages if total pages are greater than maxPagesToShow -->
+            @if(totalPages > maxPagesNumberToShow){
+            @for(page of getDisplayedPages(); track page){
+            <li class="page-item" [ngClass]="{ 'active': currentPage === page }">
+                <button class="page-link" (click)="changePage(page)">{{ page }}</button>
+            </li>
+            }
+            }
+
+
+            <li class="page-item" [ngClass]="{ 'disabled': currentPage === totalPages }">
+                <button class="page-link" (click)="nextPage()" aria-label="Next">
+                    <span aria-hidden="true">&raquo;</span>
+                    <span class="visually-hidden">Next</span>
+                </button>
+            </li>
+            <li class="page-item" [ngClass]="{ 'disabled': currentPage === totalPages }">
+                <button class="page-link" (click)="lastPage()" aria-label="Last">
+                    <span aria-hidden="true">&raquo;&raquo;</span>
+                    <span class="visually-hidden">Last</span>
+                </button>
+            </li>
+    </ul>
+</nav>
+}
+
+<!-- Add/Edit Form -->
+@if (showDataForm) {
+
+<h2>{{ selectedBookReservation ? 'Edit Book Reservation' : 'Add Book Reservation' }}</h2>
+
+<form (submit)="formAdd_Click()">
+    <div class="form-group">
+        <label for="reservationRef">Reference</label>
+        <input type="text" class="form-control" id="reservationRef" [(ngModel)]="txtReservationRef"
+            name="reservationRef" required>
+    </div>
+    <div class="form-group">
+        <label for="reservationRef">Date</label>
+        <input type="date" class="form-control" id="reservationDate" [(ngModel)]="txtReservationDate"
+            name="reservationDate" required>
+    </div>
+    <div class="form-group">
+        <label for="name">Name</label>
+        <input type="text" class="form-control" id="name" [(ngModel)]="txtName" name="name" required>
+    </div>
+    <div class="form-group">
+        <label for="email">Email</label>
+        <input type="text" class="form-control" id="email" [(ngModel)]="txtEmail" name="email" required>
+    </div>
+    <div class="form-group">
+        <label for="mobile">Mobile</label>
+        <input type="text" class="form-control" id="mobile" [(ngModel)]="txtMobile" name="mobile" required>
+    </div>
+    <div class="form-group">
+        <label for="reservationComment">Comment</label>
+        <textarea class="form-control" id="reservationComment" [(ngModel)]="txtReservationComment"
+            name="reservationComment" rows="3" required></textarea>
+    </div>
+
+    <!-- Master details input fields -->
+    <h3>Reservation Details</h3>
+    <!-- @if(selectedBookReservation){ -->
+    <div class="row">
+        @for (detail of reservationDetails; track detail; let i = $index) {
+        <div class="col-md-4">
+            <div class="form-group">
+                <label for="lblBookInfo">Book</label>
+                <select class="form-control" id="cboBookInfo{{i}}" [(ngModel)]="detail.bookInfoId"
+                    name="cboBookInfo{{i}}" required>
+                    @for(book of bookInfos; track book){
+                    <option [value]="book._id">{{ book.bookTitle }}</option>
+                    }
+                </select>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="form-group">
+                <label for="quantity{{i}}">Quantity</label>
+                <input type="number" class="form-control" id="quantity{{i}}" [(ngModel)]="detail.quantity"
+                    name="quantity{{i}}" required>
+            </div>
+        </div>
+        <div class="col-md-2">
+            @if (i > 0) {
+            <button type="button" class="btn btn-danger mt-4" (click)="removeDetail(i)">Remove</button>
+            }
+        </div>
+        }
+    </div>
+    <button type="button" class="btn btn-primary col-md-2" (click)="addDetail()">Add Detail</button>
+    <!-- } @else {
+    <div class="row">
+        @for (detail of reservationDetails; track detail; let i = $index) {
+        <div class="col-md-4">
+            <div class="form-group">
+                <label for="bookInfoId{{i}}">Book Info ID</label>
+                <input type="text" class="form-control" id="bookInfoId{{i}}" [(ngModel)]="detail.bookInfoId"
+                    name="bookInfoId{{i}}" required>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="form-group">
+                <label for="quantity{{i}}">Quantity</label>
+                <input type="number" class="form-control" id="quantity{{i}}" [(ngModel)]="detail.quantity"
+                    name="quantity{{i}}" required>
+            </div>
+        </div>
+        <div class="col-md-2">
+            @if (i > 0) {
+            <button type="button" class="btn btn-danger mt-4" (click)="removeDetail(i)">Remove</button>
+            }
+        </div>
+        }
+
+    </div>
+    <button type="button" class="btn btn-primary col-md-2" (click)="addDetail()">Add Detail</button>
+    } -->
+
+
+
+
+
+
+    <div>
+        <button type="submit" class="btn btn-primary mt-1">{{ selectedBookReservation ? 'Update' : 'Add'}}</button>
+        <button type="button" class="btn btn-primary mt-1 ms-1" (click)="btnCancel_Click()">Cancel</button>
+    </div>
+</form>
+<div class="mt-5"></div>
+
+
+
+
+
+
+
+
+
+}

@@ -1,0 +1,214 @@
+<!-- Display UI -->
+@if (!showDataForm && bookInfos) {
+<h2>Book Infos</h2>
+
+<!-- Search box -->
+<div class="form-group row">
+    <div class="col-12 col-sm-8 mb-0 mb-sm-0 position-relative">
+        <input type="text" class="form-control" placeholder="Search Book Infos" [(ngModel)]="txtSearch"
+            (keyup.enter)="btnSearch_Click()">
+        <!-- Clear icon -->
+        @if (txtSearch) {
+        <i class="bi bi-x-circle-fill position-absolute top-50 end-0 translate-middle-y margin-right-15"
+            (click)="btnClearSearch_Click()"></i>
+        }
+    </div>
+    <div class="col-6 col-sm-2 mb-0 mb-sm-0">
+        <button class="btn btn-primary w-100 mt-1 mt-xs-1 mt-sm-1 mt-md-0 mt-lg-0 mt-xl-0" (click)="btnSearch_Click()">
+            <i class="bi bi-search"></i>
+            Search
+        </button>
+    </div>
+    <div class="col-6 col-sm-2 mb-0 mb-sm-0">
+        @if(displayDeleteButton())
+        {
+        <button class="btn btn-danger w-100 mt-1 mt-xs-1 mt-sm-1 mt-md-0 mt-lg-0 mt-xl-0"
+            (click)="btnDeleteBulk_Click()">
+            <i class="bi bi-trash"></i>
+            Delete
+        </button>
+        } @else {
+        <button class="btn btn-primary w-100 mt-1 mt-xs-1 mt-sm-1 mt-md-0 mt-lg-0 mt-xl-0" (click)="btnAdd_Click()">
+            <i class="bi bi-plus"></i>
+            Add
+        </button>
+        }
+    </div>
+</div>
+
+<!-- Display data -->
+<div class="overflow-auto">
+    <table class="table table-responsive min-width-book-info-table">
+        <thead>
+            <tr>
+                <th>
+                    <input type="checkbox" #chkSelectAll [checked]="isAllSelected()"
+                        (change)="toggleAllSelection(chkSelectAll.checked)" title="Select/Deselect All">
+                </th>
+                <th class="text-center align-middle" (click)="sortTable('bookTitle')">Title <i class="bi"
+                        [ngClass]="getSortIcon('bookTitle')"></i></th>
+
+                <th class="text-center align-middle" (click)="sortTable('author')">Author <i class="bi"
+                        [ngClass]="getSortIcon('author')"></i></th>
+                <th class="text-center align-middle" (click)="sortTable('ISBN')">ISBN <i class="bi"
+                        [ngClass]="getSortIcon('ISBN')"></i></th>
+                <th class="text-center align-middle" (click)="sortTable('publisher')">Publisher <i class="bi"
+                        [ngClass]="getSortIcon('publisher')"></i></th>
+                <th class="text-center align-middle" (click)="sortTable('publishDate')">PublishDate <i class="bi"
+                        [ngClass]="getSortIcon('publishDate')"></i></th>
+                <th class="text-center align-middle" (click)="sortTable('language')">Language <i class="bi"
+                        [ngClass]="getSortIcon('language')"></i></th>
+
+                <th class="text-center align-middle" (click)="sortTable('bookCategory')">Category <i class="bi"
+                        [ngClass]="getSortIcon('bookCategory')"></i></th>
+                <th class="text-center align-middle" (click)="sortTable('stock')">Stock <i class="bi"
+                        [ngClass]="getSortIcon('stock')"></i></th>
+                <th class="text-center align-middle" (click)="sortTable('note')">Note <i class="bi"
+                        [ngClass]="getSortIcon('note')"></i></th>
+                <th class="table-action-button text-center align-middle">Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            @for (bookInfo of getFilteredPagingBookInfos; track bookInfo._id)
+            {
+            <tr>
+                <td>
+                    <input type="checkbox" id="isSelected" name="isSelected" [(ngModel)]="bookInfo.isSelected"
+                        (change)="toggleSelection(bookInfo)" title="Select">
+                </td>
+                <td>{{ bookInfo.bookTitle }}</td>
+                <td>{{ bookInfo.author }}</td>
+                <td>{{ bookInfo.ISBN }}</td>
+                <td>{{ bookInfo.publisher }}</td>
+                <td>{{ bookInfo.publishDate | date: 'mediumDate' }}</td>
+                <td>{{ bookInfo.language }}</td>
+                <td>{{ bookInfo?.bookCategory?.bookCategoryName }}</td>
+                <td class="text-end">{{ bookInfo.stock | number }}</td>
+                <td>{{ bookInfo.note }}</td>
+                <td>
+                    <button class="btn btn-primary" (click)="btnUpdate_Click(bookInfo)" title="Edit Book Info">
+                        <i class="bi bi-pencil"></i>
+                    </button>
+                    <button class="btn btn-danger ms-1" (click)="btnDelete_Click(bookInfo._id)"
+                        title="Delete Book Info">
+                        <i class="bi bi-trash"></i>
+                    </button>
+                </td>
+            </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+
+<!-- Pagination -->
+<nav aria-label="Page navigation">
+    <ul class="pagination justify-content-center">
+        <li class="page-item" [ngClass]="{ 'disabled': currentPage === 1 }">
+            <button class="page-link" (click)="firstPage()" aria-label="First">
+                <span aria-hidden="true">&laquo;&laquo;</span>
+                <span class="visually-hidden">First</span>
+            </button>
+        </li>
+        <li class="page-item" [ngClass]="{ 'disabled': currentPage === 1 }">
+            <button class="page-link" (click)="prevPage()" aria-label="Previous">
+                <span aria-hidden="true">&laquo;</span>
+                <span class="visually-hidden">Previous</span>
+            </button>
+        </li>
+
+        <!-- Display all pages if total pages are less than or equal to maxPagesToShow -->
+        @if(totalPages <= maxPagesNumberToShow) { @for(page of pages; track page){ <li class="page-item"
+            [ngClass]="{ 'active': currentPage === page }">
+            <button class="page-link" (click)="changePage(page)">{{ page }}</button>
+            </li>
+            }
+            }
+
+            <!-- Display a subset of pages if total pages are greater than maxPagesToShow -->
+            @if(totalPages > maxPagesNumberToShow){
+            @for(page of getDisplayedPages(); track page){
+            <li class="page-item" [ngClass]="{ 'active': currentPage === page }">
+                <button class="page-link" (click)="changePage(page)">{{ page }}</button>
+            </li>
+            }
+            }
+
+
+            <li class="page-item" [ngClass]="{ 'disabled': currentPage === totalPages }">
+                <button class="page-link" (click)="nextPage()" aria-label="Next">
+                    <span aria-hidden="true">&raquo;</span>
+                    <span class="visually-hidden">Next</span>
+                </button>
+            </li>
+            <li class="page-item" [ngClass]="{ 'disabled': currentPage === totalPages }">
+                <button class="page-link" (click)="lastPage()" aria-label="Last">
+                    <span aria-hidden="true">&raquo;&raquo;</span>
+                    <span class="visually-hidden">Last</span>
+                </button>
+            </li>
+    </ul>
+</nav>
+}
+
+<!-- Add/Edit Form -->
+@if (showDataForm) {
+
+@if (selectedBookInfo) {
+<h2>Edit Book Info</h2>
+}
+@else {
+<h2>Add Book Info</h2>
+}
+
+<form (submit)="formAdd_Click()">
+    <div class="form-group">
+        <label for="lblBookTitle">Title</label>
+        <input type="text" class="form-control" id="txtBookTitle" [(ngModel)]="txtBookTitle" name="txtBookTitle"
+            required>
+    </div>
+
+    <div class="form-group">
+        <label for="lblAuthor">Author</label>
+        <input type="text" class="form-control" id="txtAuthor" [(ngModel)]="txtAuthor" name="txtAuthor" required>
+    </div>
+    <div class="form-group">
+        <label for="lblISBN">ISBN</label>
+        <input type="text" class="form-control" id="txtISBN" [(ngModel)]="txtISBN" name="txtISBN" required>
+    </div>
+    <div class="form-group">
+        <label for="lblPublisher">Publisher</label>
+        <input type="text" class="form-control" id="txtPublisher" [(ngModel)]="txtPublisher" name="txtPublisher" required>
+    </div>
+    <div class="form-group">
+        <label for="lblPublishDate">Publish Date</label>
+        <input type="date" class="form-control" id="txtPublishDate" [(ngModel)]="txtPublishDate" name="txtPublishDate" required>
+    </div>
+    <div class="form-group">
+        <label for="lblLanguage">Language</label>
+        <input type="text" class="form-control" id="txtLanguage" [(ngModel)]="txtLanguage" name="txtLanguage" required>
+    </div>
+
+    <div class="form-group">
+        <label for="lblBookCategory">Category</label>
+        <select class="form-control" id="cboBookCategory" [(ngModel)]="cboBookCategory" name="cboBookCategory" required>
+            <option *ngFor="let category of bookCategories" [value]="category._id">{{ category.bookCategoryName }}
+            </option>
+        </select>
+    </div>
+
+    <div class="form-group">
+        <label for="lblStock">Stock</label>
+        <input type="text" class="form-control" id="txtStock" [(ngModel)]="txtStock" name="txtStock" required>
+    </div>
+    <div class="form-group">
+        <label for="lblNote">Note</label>
+        <textarea class="form-control" id="txtNote" [(ngModel)]="txtNote" name="txtNote" rows="3"
+            required></textarea>
+    </div>
+    <div>
+        <button type="submit" class="btn btn-primary mt-1">{{ selectedBookInfo ? 'Update' : 'Add'}}</button>
+        <button type="button" class="btn btn-primary mt-1 ms-1" (click)="btnCancel_Click()">Cancel</button>
+    </div>
+</form>
+}

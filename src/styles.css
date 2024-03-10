@@ -1,0 +1,10 @@
+@import 'bootstrap/dist/css/bootstrap.min.css';
+@import 'bootstrap-icons/font/bootstrap-icons.css';
+
+.margin-right-15 {
+    margin-right: 15px;
+}
+
+.table-action-button {
+    width: 120px;
+}

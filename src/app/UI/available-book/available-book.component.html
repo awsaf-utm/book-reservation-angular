@@ -1,0 +1,97 @@
+<!-- Display UI -->
+<h2>Available Books</h2>
+
+<!-- Search box -->
+<div class="form-group row">
+    <div class="col-12 col-sm-10 mb-0 mb-sm-0 position-relative">
+        <input type="text" class="form-control" placeholder="Search Available Books" [(ngModel)]="txtSearch"
+            (keyup.enter)="btnSearch_Click()">
+        <!-- Clear icon -->
+        @if (txtSearch) {
+        <i class="bi bi-x-circle-fill position-absolute top-50 end-0 translate-middle-y margin-right-15"
+            (click)="btnClearSearch_Click()"></i>
+        }
+    </div>
+    <div class="col-6 col-sm-2 mb-0 mb-sm-0">
+        <button class="btn btn-primary w-100 mt-1 mt-xs-1 mt-sm-1 mt-md-0 mt-lg-0 mt-xl-0" (click)="btnSearch_Click()">
+            <i class="bi bi-search"></i>
+            Search
+        </button>
+    </div>
+</div>
+
+<!-- Display data -->
+<div class="overflow-auto">
+    <table class="table table-responsive min-width-available-book-table">
+        <thead>
+            <tr>
+                <th class="text-center align-middle" (click)="sortTable('bookTitle')">Book <i class="bi"
+                        [ngClass]="getSortIcon('bookTitle')"></i></th>
+                <th class="text-center align-middle" (click)="sortTable('remainingStock')">Available Book(s) <i
+                        class="bi" [ngClass]="getSortIcon('remainingStock')"></i></th>
+                <th class="text-center align-middle" (click)="sortTable('stock')">Total Book(s) <i class="bi"
+                        [ngClass]="getSortIcon('stock')"></i></th>
+            </tr>
+        </thead>
+        <tbody>
+            @for (availableBook of getFilteredPagingAvailableBooks; track availableBook._id)
+            {
+            <tr>
+                <td>{{ availableBook.bookInfo.bookTitle }}</td>
+                <td class="text-end">{{ availableBook.remainingStock }}</td>
+                <td class="text-end">{{ availableBook.bookInfo.stock }}</td>
+            </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+
+<!-- Pagination -->
+<nav aria-label="Page navigation">
+    <ul class="pagination justify-content-center">
+        <li class="page-item" [ngClass]="{ 'disabled': currentPage === 1 }">
+            <button class="page-link" (click)="firstPage()" aria-label="First">
+                <span aria-hidden="true">&laquo;&laquo;</span>
+                <span class="visually-hidden">First</span>
+            </button>
+        </li>
+        <li class="page-item" [ngClass]="{ 'disabled': currentPage === 1 }">
+            <button class="page-link" (click)="prevPage()" aria-label="Previous">
+                <span aria-hidden="true">&laquo;</span>
+                <span class="visually-hidden">Previous</span>
+            </button>
+        </li>
+
+        <!-- Display all pages if total pages are less than or equal to maxPagesToShow -->
+        @if(totalPages <= maxPagesNumberToShow) { @for(page of pages; track page){ <li class="page-item"
+            [ngClass]="{ 'active': currentPage === page }">
+            <button class="page-link" (click)="changePage(page)">{{ page }}</button>
+            </li>
+            }
+            }
+
+            <!-- Display a subset of pages if total pages are greater than maxPagesToShow -->
+            @if(totalPages > maxPagesNumberToShow){
+            @for(page of getDisplayedPages(); track page){
+            <li class="page-item" [ngClass]="{ 'active': currentPage === page }">
+                <button class="page-link" (click)="changePage(page)">{{ page }}</button>
+            </li>
+            }
+            }
+
+
+            <li class="page-item" [ngClass]="{ 'disabled': currentPage === totalPages }">
+                <button class="page-link" (click)="nextPage()" aria-label="Next">
+                    <span aria-hidden="true">&raquo;</span>
+                    <span class="visually-hidden">Next</span>
+                </button>
+            </li>
+            <li class="page-item" [ngClass]="{ 'disabled': currentPage === totalPages }">
+                <button class="page-link" (click)="lastPage()" aria-label="Last">
+                    <span aria-hidden="true">&raquo;&raquo;</span>
+                    <span class="visually-hidden">Last</span>
+                </button>
+            </li>
+    </ul>
+</nav>
